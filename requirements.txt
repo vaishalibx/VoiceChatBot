@@ -1,0 +1,8 @@
+streamlit
+langchain-groq
+python-dotenv
+SpeechRecognition
+soundfile
+pygame
+audio-recorder-streamlit
+pyttsx3
