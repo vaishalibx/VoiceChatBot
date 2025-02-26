@@ -6,4 +6,4 @@ soundfile
 pygame
 streamlit
 audio-recorder-streamlit
-pyttsx3
+gTTS
