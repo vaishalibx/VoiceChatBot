@@ -10,6 +10,7 @@ import pygame
 import streamlit as st
 import time
 from audio_recorder_streamlit import audio_recorder
+from gtts import gTTS
 
 # Load environment variables
 load_dotenv()
@@ -61,18 +62,18 @@ def speech_to_text(audio_data):
         return None
 
 def text_to_speech(text):
-    """Generates speech from text using pyttsx3."""
-    import pyttsx3
-    
-    cache_key = hashlib.md5(text.encode('utf-8')).hexdigest()
-    output_path = "response.wav"
-    
-    engine = pyttsx3.init()
-    engine.save_to_file(text, output_path)
-    engine.runAndWait()
-    engine.stop()
-    
-    return output_path
+    """Generates speech from text using Google Text-to-Speech."""
+    try:
+        # Create a temporary file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as fp:
+            output_path = fp.name
+            # Generate speech using gTTS
+            tts = gTTS(text=text, lang='en')
+            tts.save(output_path)
+            return output_path
+    except Exception as e:
+        st.error(f"Error in text-to-speech conversion: {str(e)}")
+        return None
 
 def main():
     if 'messages' not in st.session_state:
@@ -121,14 +122,17 @@ def main():
             with st.spinner("Generating voice response..."):
                 audio_file = text_to_speech(llm_response)
                 
-            # Play audio response
-            with open(audio_file, 'rb') as f:
-                audio_bytes = f.read()
-            st.audio(audio_bytes, format='audio/wav')
+            if audio_file:
+                # Play audio response
+                with open(audio_file, 'rb') as f:
+                    audio_bytes = f.read()
+                st.audio(audio_bytes, format='audio/mp3')
+                
+                # Cleanup temporary files
+                os.remove(audio_file)
             
-            # Cleanup temporary files
+            # Cleanup input audio file
             os.remove(temp_audio_path)
-            os.remove(audio_file)
 
     # Add a clear chat button
     if st.button("Clear Chat"):
